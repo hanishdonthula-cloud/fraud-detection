@@ -369,13 +369,12 @@ function executeCoreLogic() {
         else if (finalScanned) statusEl.innerHTML = `<span class="tag tag-orange">Scanned ONLY</span>`;
         else statusEl.innerText = "--";
 
-        // 5. FLAGS (RESELLABLE FIX IMPLEMENTED HERE)
+        // 5. FLAGS
         document.getElementById('resValue').innerHTML = (pPct > 70) ? `<span class="tag tag-red">ALERT: HIGH</span>` : `<span class="tag tag-blue">No (${pPct}%)</span>`;
         
         let isResell = false;
         const finalTokens = pItem.toLowerCase().replace(/[^a-z0-9\u00c0-\u017f]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !junk.includes(w));
         
-        // Split specifically by "resellable:" to ignore generic headers
         const resellParts = pLower.split(/resellable\s*:/);
         if (resellParts.length > 1) {
             for (let i = 1; i < resellParts.length; i++) {
@@ -426,8 +425,8 @@ function executeCoreLogic() {
                 dec.innerText = "APPROVE // SUBSTITUTION CLAIM VERIFIED";
                 dec.className = "decision-box tag-green";
             } else if (finalNotScanned) {
-                dec.innerText = "APPROVE // ITEM NOT SCANNED VERIFIED";
-                dec.className = "decision-box tag-green";
+                dec.innerText = "INCONCLUSIVE // NOT SCANNED (LOW PERCENTILE)";
+                dec.className = "decision-box tag-orange";
             } else if (finalScanned) {
                 dec.innerText = "REJECT // FRAUD ALERT (SCANNED ONLY)";
                 dec.className = "decision-box tag-red";
