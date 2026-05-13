@@ -295,6 +295,8 @@ function executeCoreLogic() {
                 const currentReason = rM ? rM[1].trim() : "";
 
                 let cFound = false, cScanned = false, cNotScanned = false, cSub = false;
+                
+                // Keep accents for non-English support
                 const tokens = currentItem.toLowerCase().replace(/[^a-z0-9\u00c0-\u017f]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !junk.includes(w));
 
                 if (tokens.length > 0) {
@@ -307,13 +309,12 @@ function executeCoreLogic() {
                             cFound = true; 
                             if (lineLow.includes("not scanned")) cNotScanned = true;
                             else if (lineLow.includes("scanned") && !lineLow.includes("not scanned")) cScanned = true;
-                            if (lineLow.includes("substitute") || lineLow.includes("substituted")) cSub = true;
                         }
                     });
                 }
 
-                if (!cFound) cSub = true; 
-                else if (cFound && !cScanned && !cNotScanned) cSub = true; 
+                // STRICT SUBSTITUTION LOGIC (Fix applied here)
+                if (!cFound && tokens.length > 0) cSub = true; // Claimed, but completely absent from order
                 else if (currentReason.toLowerCase().includes("substitute")) cSub = true;
 
                 if (cSub) hasSubClaim = true;
@@ -355,7 +356,7 @@ function executeCoreLogic() {
         }
         document.getElementById('resStep10').innerText = pVal + "%";
 
-        // 4. DISPLAY STATUS
+        // 4. DISPLAY STATUS (Added Restaurant UI Fix)
         const subEl = document.getElementById('resSub');
         if (mixedClaims) subEl.innerHTML = `<span class="tag tag-orange">MIXED CONFLICT</span>`;
         else if (finalIsSub) subEl.innerHTML = `<span class="tag tag-green">DETECTED (VALID)</span>`;
@@ -363,7 +364,8 @@ function executeCoreLogic() {
 
         const statusEl = document.getElementById('resStatus');
         if (mixedClaims) statusEl.innerHTML = `<span class="tag tag-orange">Multiple Item Types</span>`;
-        else if (finalIsSub && !finalItemFound) statusEl.innerHTML = `<span class="tag tag-blue">N/A (Substitute)</span>`;
+        else if (finalIsSub) statusEl.innerHTML = `<span class="tag tag-blue">Substitute</span>`;
+        else if (!isGrocery) statusEl.innerHTML = `<span class="tag tag-blue">N/A (Restaurant)</span>`;
         else if (finalScanned && finalNotScanned) statusEl.innerHTML = `<span class="tag tag-orange">Mixed Status</span>`;
         else if (finalNotScanned) statusEl.innerHTML = `<span class="tag tag-green">Not Scanned</span>`;
         else if (finalScanned) statusEl.innerHTML = `<span class="tag tag-orange">Scanned ONLY</span>`;
@@ -405,7 +407,7 @@ function executeCoreLogic() {
         
         document.getElementById('customerReason').innerText = pReason || "No anomalies explicitly described.";
 
-        // 7. DECISION LOGIC 
+        // 7. DECISION LOGIC
         const dec = document.getElementById('finalDecision');
         const note = document.getElementById('manualSealNote');
         note.style.display = 'none';
