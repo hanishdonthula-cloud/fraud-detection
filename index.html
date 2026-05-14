@@ -296,7 +296,6 @@ function executeCoreLogic() {
 
                 let cFound = false, cScanned = false, cNotScanned = false, cSub = false;
                 
-                // Keep accents for non-English support
                 const tokens = currentItem.toLowerCase().replace(/[^a-z0-9\u00c0-\u017f]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !junk.includes(w));
 
                 if (tokens.length > 0) {
@@ -313,8 +312,8 @@ function executeCoreLogic() {
                     });
                 }
 
-                // STRICT SUBSTITUTION LOGIC (Fix applied here)
-                if (!cFound && tokens.length > 0) cSub = true; // Claimed, but completely absent from order
+                // STRICT SUBSTITUTION LOGIC
+                if (!cFound && tokens.length > 0) cSub = true; 
                 else if (currentReason.toLowerCase().includes("substitute")) cSub = true;
 
                 if (cSub) hasSubClaim = true;
@@ -334,12 +333,12 @@ function executeCoreLogic() {
 
         const mixedClaims = hasSubClaim && hasStandardClaim;
 
-        // 2. INDUSTRY & ORDER TYPE
+        // 2. INDUSTRY & ORDER TYPE (ADDED RETAIL/B&Q SUPPORT)
         const pLower = packetRaw.toLowerCase();
-        const groceries = ['sainsbury', 'waitrose', 'morrison', 'co-op', 'aldi', 'asda', 'monoprix', 'carrefour', 'tesco', 'auchan', 'franprix', 'casino', 'picard', 'lidl', 'spar', 'iceland', 'grocery'];
+        const groceries = ['sainsbury', 'waitrose', 'morrison', 'co-op', 'aldi', 'asda', 'monoprix', 'carrefour', 'tesco', 'auchan', 'franprix', 'casino', 'picard', 'lidl', 'spar', 'iceland', 'grocery', 'retail', 'b&q', 'b & q', 'boots', 'superdrug', 'whsmith', 'pharmacy', 'convenience'];
         const isGrocery = groceries.some(k => pLower.includes(k));
         
-        document.getElementById('resIndustry').innerHTML = isGrocery ? `<span class="tag tag-blue">Grocery Order</span>` : `<span class="tag tag-orange">Restaurant Order</span>`;
+        document.getElementById('resIndustry').innerHTML = isGrocery ? `<span class="tag tag-blue">Grocery / Retail Order</span>` : `<span class="tag tag-orange">Restaurant Order</span>`;
         document.getElementById('resType').innerHTML = pLower.includes("order type: restaurant") ? `<span style="color:#A3B3CC">Restaurant (M+)</span>` : `<span style="color:#A3B3CC">Delivery (Deliveroo)</span>`;
 
         // 3. PERCENTILE MATCHER
@@ -356,7 +355,7 @@ function executeCoreLogic() {
         }
         document.getElementById('resStep10').innerText = pVal + "%";
 
-        // 4. DISPLAY STATUS (Added Restaurant UI Fix)
+        // 4. DISPLAY STATUS 
         const subEl = document.getElementById('resSub');
         if (mixedClaims) subEl.innerHTML = `<span class="tag tag-orange">MIXED CONFLICT</span>`;
         else if (finalIsSub) subEl.innerHTML = `<span class="tag tag-green">DETECTED (VALID)</span>`;
@@ -407,7 +406,7 @@ function executeCoreLogic() {
         
         document.getElementById('customerReason').innerText = pReason || "No anomalies explicitly described.";
 
-        // 7. DECISION LOGIC
+        // 7. DECISION LOGIC (Low percentile Not Scanned rule added)
         const dec = document.getElementById('finalDecision');
         const note = document.getElementById('manualSealNote');
         note.style.display = 'none';
